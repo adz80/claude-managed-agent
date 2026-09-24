@@ -7,6 +7,15 @@
   "observability": {
     "enabled": true,
   },
+  // Custom domain — chewbacca.dev is already an active zone on this
+  // account, so wrangler provisions the DNS record + TLS automatically
+  // on deploy.
+  "routes": [
+    {
+      "pattern": "claude-agent.chewbacca.dev",
+      "custom_domain": true,
+    },
+  ],
   // Non-secret vars. Secrets go through `wrangler secret put`. Anything you
   // put here is visible in the dashboard and stored in the deploy bundle.
   //
