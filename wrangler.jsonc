@@ -16,6 +16,11 @@
       "custom_domain": true,
     },
   ],
+  // The custom domain above is the only public entry point — the
+  // workers.dev preview URL and its preview-deployment URLs are
+  // explicitly off rather than left to wrangler's implicit default.
+  "workers_dev": false,
+  "preview_urls": false,
   // Non-secret vars. Secrets go through `wrangler secret put`. Anything you
   // put here is visible in the dashboard and stored in the deploy bundle.
   //
