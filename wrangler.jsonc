@@ -91,13 +91,32 @@
       "migrations_dir": "./migrations",
     },
   ],
-  // Isolate-only deploy: the MicroVM Container DO (Sandbox) is dropped —
-  // this session has no Docker daemon available to build its container
-  // image. Only the Isolate backend (IsolateRunner) is deployed. See
-  // README → "Deployments that exclusively use Isolate sandboxes can drop
-  // the snapshot secrets and the r2_buckets block entirely."
+  // Container DO — one MicroVM sandbox per session, driven by webhooks.
+  // Built via Cloudflare Workers Builds (Git integration), not locally —
+  // this deploy environment has no Docker daemon, and Workers Builds runs
+  // Dockerfile builds in Cloudflare's own environment instead.
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "./Dockerfile",
+      "instance_type": "standard-1", // change this for larger or smaller containers
+      "name": "claude-managed-agents-sandbox",
+      "max_instances": 100, // change this for more concurrent agents
+      // 30-minute grace period for active sessions during a rollout — gives
+      // an in-flight agent run time to wind down before the old container
+      // is replaced with the new image.
+      "rollout_active_grace_period": 1800,
+      // Single-step 100% rollout: roll the new image to every container at
+      // once. The grace period above protects active sessions.
+      "rollout_step_percentage": [100],
+    },
+  ],
   "durable_objects": {
     "bindings": [
+      {
+        "class_name": "Sandbox",
+        "name": "Sandbox",
+      },
       {
         "class_name": "IsolateRunner",
         "name": "IsolateRunner",
@@ -133,6 +152,17 @@
   "ai": {
     "binding": "AI",
   },
+  // R2 bucket for sandbox snapshots. The Sandbox SDK reads BACKUP_BUCKET as
+  // an R2 binding (used directly in dev via `localBucket: true`); in
+  // production it presigns URLs against R2 — that path needs the secrets
+  // R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, BACKUP_BUCKET_NAME, and
+  // CLOUDFLARE_ACCOUNT_ID. See README → Snapshots.
+  "r2_buckets": [
+    {
+      "binding": "BACKUP_BUCKET",
+      "bucket_name": "claude-managed-agents-snapshots",
+    },
+  ],
   // Email Routing send_email binding for `email_send`. Configure
   // your zone in the dashboard (Email → Email Routing → Destination
   // addresses) and add the verified destinations to `destination_addresses`.
@@ -145,6 +175,12 @@
     {
       "new_sqlite_classes": ["IsolateRunner"],
       "tag": "v1",
+    },
+    // Sandbox (MicroVM) added in a second migration step — the v1 tag is
+    // already applied in production, so it can't be edited retroactively.
+    {
+      "new_sqlite_classes": ["Sandbox"],
+      "tag": "v2",
     },
   ],
   // Daily cleanup of webhook_events and sessions older than 24h.
