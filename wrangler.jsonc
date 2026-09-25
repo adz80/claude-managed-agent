@@ -6,6 +6,13 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": false,
+    },
   },
   // Custom domain — chewbacca.dev is already an active zone on this
   // account, so wrangler provisions the DNS record + TLS automatically
