@@ -193,9 +193,13 @@
   // need to edit. The dashboard discovers bindings via
   // `scripts/sync-vpc-bindings.mjs`, which runs on `prebuild`.
   //
-  //    "vpc_networks": [
-  //      { "binding": "MESH", "network_id": "cf1:network", "remote": true }
-  //    ],
+  // MESH binding only — wired at the Worker level, but no tool or egress
+  // rule calls it yet (call_service explicitly excludes "network"-typed
+  // bindings, and there's no vpc-network egress rule type). It shows up
+  // on the dashboard's VPC page and is ready for a custom tool later.
+  "vpc_networks": [
+    { "binding": "MESH", "network_id": "cf1:network", "remote": true },
+  ],
   //    "vpc_services": [
   //      { "binding": "INTERNAL_API", "service_id": "00000000-0000-0000-0000-000000000000" }
   //    ],

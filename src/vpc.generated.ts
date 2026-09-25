@@ -4,4 +4,10 @@
 
 import type { VpcBinding } from "./vpc";
 
-export const VPC_BINDINGS: VpcBinding[] = [];
+export const VPC_BINDINGS: VpcBinding[] = [
+  {
+    "binding": "MESH",
+    "type": "network",
+    "id": "cf1:network"
+  }
+];
